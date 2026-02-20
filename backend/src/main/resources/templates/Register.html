@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>JSON - Register</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container mt-5">
+    <h2>Daftar Akun Titipers</h2>
+    <div th:if="${param.success != null}" class="alert alert-success">Registrasi berhasil disimpan di Database H2!</div>
+
+    <form th:action="@{/auth/register}" th:object="${user}" method="post">
+        <div class="mb-3"><label>Email</label><input type="email" class="form-control" th:field="*{email}" required></div>
+        <div class="mb-3"><label>Username</label><input type="text" class="form-control" th:field="*{username}" placeholder="Kosongkan untuk auto-generate"></div>
+        <div class="mb-3"><label>Password</label><input type="password" class="form-control" th:field="*{password}" required></div>
+        <button type="submit" class="btn btn-primary">Register</button>
+        <a th:href="@{/auth/list}" class="btn btn-outline-secondary ms-2">Lihat Data User</a>
+    </form>
+</div>
+</body>
+</html>
