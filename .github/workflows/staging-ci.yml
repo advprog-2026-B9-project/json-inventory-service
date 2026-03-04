@@ -48,16 +48,36 @@ jobs:
           name: jacoco-coverage-report
           path: backend/build/reports/jacoco/test/html/
 
-#      - name: Cache SonarQube packages
-#        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
-#        with:
-#          path: ~/.sonar/cache
-#          key: ${{ runner.os }}-sonar
-#          restore-keys: ${{ runner.os }}-sonar
-#
-#      - name: Analyze with SonarCloud
-#        working-directory: ./backend
-#        env:
-#          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-#          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-#        run: ./gradlew sonar --info
+      - name: Cache SonarQube packages
+        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
+      - name: Analyze with SonarCloud
+        working-directory: ./backend
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        run: ./gradlew sonar --info
+
+  deploy-staging:
+    name: Dummy Deploy to Staging
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.ref == 'refs/heads/staging'
+
+    steps:
+      - name: Simulate Staging Deployment
+        run: |
+          echo "Memulai proses deployment ke server STAGING..."
+          echo "Mengunduh artifact build terbaru..."
+          sleep 2
+          echo "Mematikan service backend lama..."
+          sleep 2
+          echo "Memulai json-platform-staging.jar di environment isolasi..."
+          sleep 3
+          echo "Dummy Deployment ke Staging berhasil!"
+          echo "URL Staging: https://staging-b09.json-platform.com"

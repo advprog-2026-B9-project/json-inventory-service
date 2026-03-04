@@ -12,4 +12,8 @@ class JsonPlatformApplicationTests {
     void contextLoads() {
     }
 
+    @Test
+    void testMain() {
+        JsonPlatformApplication.main(new String[] {});
+    }
 }
