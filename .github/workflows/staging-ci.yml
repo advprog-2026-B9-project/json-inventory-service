@@ -49,7 +49,7 @@ jobs:
           path: backend/build/reports/jacoco/test/html/
 
       - name: Cache SonarQube packages
-        uses: actions/cache@0057852bfaa89a56745cba8c7296529d2fc39830
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
