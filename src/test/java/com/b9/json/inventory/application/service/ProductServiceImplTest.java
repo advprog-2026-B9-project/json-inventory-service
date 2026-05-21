@@ -1,11 +1,15 @@
 package com.b9.json.inventory.application.service;
 
 import com.b9.json.inventory.application.integration.AuthIntegrationService;
+import com.b9.json.inventory.application.dto.ProductDetailResponse;
 import com.b9.json.inventory.application.dto.UserDto;
-import com.b9.json.inventory.application.exception.*;
+import com.b9.json.inventory.application.exception.InsufficientStockException;
+import com.b9.json.inventory.application.exception.InvalidRatingScoreException;
+import com.b9.json.inventory.application.exception.InvalidStockQuantityException;
+import com.b9.json.inventory.application.exception.ProductOwnershipException;
+import com.b9.json.inventory.application.exception.ProductNotFoundException;
 import com.b9.json.inventory.domain.model.Product;
 import com.b9.json.inventory.domain.repository.ProductRepository;
-import com.b9.json.inventory.application.dto.ProductDetailResponse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -40,7 +44,7 @@ class ProductServiceImplTest {
     private ProductRepository productRepository;
 
     @Mock
-    private AuthIntegrationService authService;
+    private AuthIntegrationService authIntegrationService;
 
     @InjectMocks
     private ProductServiceImpl productService;
@@ -157,37 +161,36 @@ class ProductServiceImplTest {
         verify(productRepository, times(1)).findByOwner(owner);
     }
 
-//    @Test
-//    void testGetAllProductsWithDetails_Success() {
-//        UserDto mockUser = new UserDto();
-//        mockUser.setUsername(owner);
-//        mockUser.setFullName("User 1");
-//        mockUser.setPhoneNumber("08123456789");
-//
-//        when(productRepository.searchProducts("produknya", owner)).thenReturn(List.of(sampleProduct));
-//        when(authService.findByUsername(owner)).thenReturn(mockUser);
-//
-//        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", owner);
-//
-//        assertEquals(1, result.size());
-//        assertEquals("User 1", result.getFirst().getJastiperFullName());
-//        verify(productRepository, times(1)).searchProducts("produknya", owner);
-//        verify(authService, times(1)).findByUsername(owner);
-//    }
-//
-//    @Test
-//    void testGetAllProductsWithDetails_UserNotFound_Success() {
-//        when(productRepository.searchProducts("produknya", owner)).thenReturn(List.of(sampleProduct));
-//        when(authService.findByUsername(owner)).thenReturn(null);
-//
-//        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", owner);
-//
-//        assertEquals(1, result.size());
-//        assertEquals("Anonim", result.getFirst().getJastiperFullName());
-//        assertEquals("-", result.getFirst().getJastiperPhoneNumber());
-//        verify(productRepository, times(1)).searchProducts("produknya", owner);
-//        verify(authService, times(1)).findByUsername(owner);
-//    }
+    @Test
+    void testGetAllProductsWithDetails_Success() {
+        UserDto mockUser = new UserDto(owner, "User 1", "08123456789");
+
+        when(productRepository.searchProducts("produknya", owner)).thenReturn(List.of(sampleProduct));
+        when(authIntegrationService.getUserByUsername(owner)).thenReturn(mockUser);
+
+        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", owner);
+
+        assertEquals(1, result.size());
+        assertEquals("User 1", result.getFirst().getJastiperFullName());
+
+        verify(productRepository, times(1)).searchProducts("produknya", owner);
+        verify(authIntegrationService, times(1)).getUserByUsername(owner);
+    }
+
+    @Test
+    void testGetAllProductsWithDetails_UserNotFound_Success() {
+        when(productRepository.searchProducts("produknya", owner)).thenReturn(List.of(sampleProduct));
+        when(authIntegrationService.getUserByUsername(owner)).thenReturn(null);
+
+        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", owner);
+
+        assertEquals(1, result.size());
+        assertEquals("Anonim", result.getFirst().getJastiperFullName());
+        assertEquals("-", result.getFirst().getJastiperPhoneNumber());
+
+        verify(productRepository, times(1)).searchProducts("produknya", owner);
+        verify(authIntegrationService, times(1)).getUserByUsername(owner);
+    }
 
     @Test
     void testGetProductById_Success() {
