@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(
         controllers = SecurityConfigTest.DummyController.class,
-        properties = "API_GATEWAY_URL=http://my-gateway-test.com"
+        properties = "FRONTEND_URL=http://frontend-palsu-untuk-test.lokal"
 )
 @Import({SecurityConfig.class, SecurityConfigTest.DummyController.class})
 class SecurityConfigTest {
@@ -55,7 +55,8 @@ class SecurityConfigTest {
         CorsConfiguration config = corsConfigurationSource.getCorsConfiguration(request);
 
         assertNotNull(config);
-        assertEquals(List.of("http://localhost:3000", "http://my-gateway-test.com"), config.getAllowedOrigins());
+
+        assertEquals(List.of("http://localhost:3000", "http://frontend-palsu-untuk-test.lokal"), config.getAllowedOrigins());
 
         assertEquals(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"), config.getAllowedMethods());
         assertEquals(List.of("*"), config.getAllowedHeaders());

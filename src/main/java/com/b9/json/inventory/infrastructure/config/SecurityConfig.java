@@ -17,10 +17,10 @@ import java.util.List;
 @EnableWebSecurity
 public class SecurityConfig {
 
-    private final String apiGatewayUrl;
+    private final String frontendUrl;
 
-    public SecurityConfig(@Value("${API_GATEWAY_URL:http://localhost:8080}") String apiGatewayUrl) {
-        this.apiGatewayUrl = apiGatewayUrl;
+    public SecurityConfig(@Value("${FRONTEND_URL:http://localhost:8080}") String frontendUrl) {
+        this.frontendUrl = frontendUrl;
     }
 
     @Bean
@@ -37,7 +37,7 @@ public class SecurityConfig {
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("http://localhost:3000", apiGatewayUrl));
+        configuration.setAllowedOrigins(List.of("http://localhost:3000", frontendUrl));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
