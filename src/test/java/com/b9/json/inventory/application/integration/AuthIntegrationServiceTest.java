@@ -9,6 +9,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestClient;
 
+import java.util.UUID;
+
 import static org.hamcrest.Matchers.endsWith;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -30,39 +32,41 @@ class AuthIntegrationServiceTest {
     }
 
     @Test
-    void getUserByUsername_ReturnsUserDto() throws Exception {
-        UserDto mockUser = new UserDto("testuser", "Test User", "08123456789");
+    void getUserById_ReturnsUserDto() throws Exception {
+        UUID userId = UUID.randomUUID();
+        UserDto mockUser = new UserDto(userId, "testuser", "Test User", "08123456789");
         String jsonResponse = objectMapper.writeValueAsString(mockUser);
 
-        mockServer.expect(requestTo(endsWith("/auth/internal/user?username=testuser")))
+        mockServer.expect(requestTo(endsWith("/auth/internal/user?id=" + userId)))
                 .andRespond(withSuccess(jsonResponse, MediaType.APPLICATION_JSON));
 
-        UserDto result = authIntegrationService.getUserByUsername("testuser");
+        UserDto result = authIntegrationService.getUserById(userId);
 
+        assertEquals(userId, result.id());
         assertEquals("testuser", result.username());
-        assertEquals("Test User", result.fullName());
-        assertEquals("08123456789", result.phoneNumber());
 
         mockServer.verify();
     }
 
     @Test
-    void getUserByUsername_WhenNotFound_ReturnsNull() {
-        mockServer.expect(requestTo(endsWith("/auth/internal/user?username=unknownuser")))
+    void getUserById_WhenNotFound_ReturnsNull() {
+        UUID userId = UUID.randomUUID();
+        mockServer.expect(requestTo(endsWith("/auth/internal/user?id=" + userId)))
                 .andRespond(withStatus(HttpStatus.NOT_FOUND));
 
-        UserDto result = authIntegrationService.getUserByUsername("unknownuser");
+        UserDto result = authIntegrationService.getUserById(userId);
 
         assertNull(result);
         mockServer.verify();
     }
 
     @Test
-    void getUserByUsername_WhenServerError_ReturnsNull() {
-        mockServer.expect(requestTo(endsWith("/auth/internal/user?username=erroruser")))
+    void getUserById_WhenServerError_ReturnsNull() {
+        UUID userId = UUID.randomUUID();
+        mockServer.expect(requestTo(endsWith("/auth/internal/user?id=" + userId)))
                 .andRespond(withStatus(HttpStatus.INTERNAL_SERVER_ERROR));
 
-        UserDto result = authIntegrationService.getUserByUsername("erroruser");
+        UserDto result = authIntegrationService.getUserById(userId);
 
         assertNull(result);
         mockServer.verify();

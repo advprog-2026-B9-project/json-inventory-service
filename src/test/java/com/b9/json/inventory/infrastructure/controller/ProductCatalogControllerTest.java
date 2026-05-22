@@ -42,10 +42,13 @@ class ProductCatalogControllerTest {
 
     private Product sampleProduct;
     private UUID productId;
+    private UUID jastiperId;
 
     @BeforeEach
     void setUp() {
         productId = UUID.randomUUID();
+        jastiperId = UUID.randomUUID();
+
         sampleProduct = Product.builder()
                 .id(productId)
                 .name("produk 1")
@@ -54,7 +57,7 @@ class ProductCatalogControllerTest {
                 .stock(3)
                 .originCountry("Indo")
                 .arrivalDate(LocalDate.now().plusDays(7))
-                .ownerUsername("user1")
+                .ownerId(jastiperId)
                 .build();
     }
 
@@ -80,18 +83,18 @@ class ProductCatalogControllerTest {
         ProductDetailResponse response = new ProductDetailResponse(sampleProduct, "User 1", "08123456789");
         List<ProductDetailResponse> responses = Collections.singletonList(response);
 
-        when(catalogService.getAllProductsWithDetails("produk", "user1")).thenReturn(responses);
+        when(catalogService.getAllProductsWithDetails("produk", jastiperId)).thenReturn(responses);
 
         mockMvc.perform(get("/api/v1/products")
                         .param("name", "produk")
-                        .param("jastiper", "user1")
+                        .param("jastiperId", jastiperId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1))
                 .andExpect(jsonPath("$[0].name").value(sampleProduct.getName()))
-                .andExpect(jsonPath("$[0].jastiperUsername").value("user1"));
+                .andExpect(jsonPath("$[0].jastiperId").value(jastiperId.toString()));
 
-        verify(catalogService, times(1)).getAllProductsWithDetails("produk", "user1");
+        verify(catalogService, times(1)).getAllProductsWithDetails("produk", jastiperId);
     }
 
     @Test

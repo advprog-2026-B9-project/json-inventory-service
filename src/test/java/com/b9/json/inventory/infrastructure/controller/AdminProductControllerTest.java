@@ -57,7 +57,7 @@ class AdminProductControllerTest {
                 .stock(3)
                 .originCountry("Indo")
                 .arrivalDate(LocalDate.now().plusDays(7))
-                .ownerUsername("admin_user")
+                .ownerId(UUID.randomUUID())
                 .build();
     }
 
