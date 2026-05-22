@@ -17,7 +17,7 @@ public interface SpringDataProductRepository extends JpaRepository<Product, UUID
 
     @Query("SELECT p FROM Product p WHERE " +
             "(CAST(:name AS String) IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', CAST(:name AS String), '%'))) AND " +
-            "(CAST(:jastiperId AS UUID) IS NULL OR p.ownerId = :jastiperId)")
+            "(:jastiperId IS NULL OR p.ownerId = :jastiperId)")
     List<Product> searchProducts(@Param("name") String name, @Param("jastiperId") UUID jastiperId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
