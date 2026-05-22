@@ -21,63 +21,22 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class ProductServiceImpl implements ProductService {
+public class ProductServiceImpl implements
+        ProductCatalogService,
+        JastiperProductService,
+        ProductStockService,
+        AdminProductService {
+
     private static final double ROUNDING_FACTOR = 100.0;
 
     private final ProductRepository productRepository;
     private final AuthIntegrationService authIntegrationService;
 
     @Override
-    public Product createProduct(Product product, String ownerUsername) {
-        product.setOwnerUsername(ownerUsername);
-        return productRepository.save(product);
-    }
-
-    @Override
-    @Transactional
-    public Product updateProduct(UUID id, Product updatedData, String ownerUsername) {
-        Product existingProduct = findProductByIdForUpdate(id);
-        validateOwnership(existingProduct.getOwnerUsername(), ownerUsername);
-
-        existingProduct.setName(updatedData.getName());
-        existingProduct.setDescription(updatedData.getDescription());
-        existingProduct.setPrice(updatedData.getPrice());
-        existingProduct.setStock(updatedData.getStock());
-
-        return productRepository.save(existingProduct);
-    }
-
-    @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    @Override
-    public List<Product> getMyProducts(String ownerUsername) {
-        return productRepository.findByOwner(ownerUsername);
-    }
-
-    @Override
-    @Transactional
-    public void deleteProduct(UUID id, String ownerUsername) {
-        Product product = findProductByIdForUpdate(id);
-        validateOwnership(product.getOwnerUsername(), ownerUsername);
-
-        productRepository.deleteById(id);
-    }
-
-    @Override
-    public List<ProductDetailResponse> getAllProductsWithDetails(String name, String jastiper) {
-        List<Product> products = productRepository.searchProducts(name, jastiper);
-
-        return products.stream().map(product -> {
-            UserDto user = authIntegrationService.getUserByUsername(product.getOwnerUsername());
-
-            String fullName = (user != null) ? user.fullName() : "Anonim";
-            String phone = (user != null) ? user.phoneNumber() : "-";
-            return new ProductDetailResponse(product, fullName, phone);
-        }).toList();
-    }
 
     @Override
     public Product getProductById(UUID id) {
@@ -86,11 +45,50 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    public Product createProduct(Product product, UUID ownerId) {
+        product.setOwnerId(ownerId);
+        return productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public Product updateProduct(UUID id, Product updatedData, UUID ownerId) {
+        Product existingProduct = findProductByIdForUpdate(id);
+        validateOwnership(existingProduct.getOwnerId(), ownerId);
+        updateBasicFields(existingProduct, updatedData);
+        return productRepository.save(existingProduct);
+    }
+
+    @Override
+    public List<Product> getMyProducts(UUID ownerId) {
+        return productRepository.findByOwnerId(ownerId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(UUID id, UUID ownerId) {
+        Product product = findProductByIdForUpdate(id);
+        validateOwnership(product.getOwnerId(), ownerId);
+        productRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ProductDetailResponse> getAllProductsWithDetails(String name, UUID jastiperId) {
+        List<Product> products = productRepository.searchProducts(name, jastiperId);
+
+        return products.stream().map(product -> {
+            UserDto user = authIntegrationService.getUserById(product.getOwnerId());
+
+            String fullName = (user != null) ? user.fullName() : "Anonim";
+            String phone = (user != null) ? user.phoneNumber() : "-";
+            return new ProductDetailResponse(product, fullName, phone);
+        }).toList();
+    }
+
+    @Override
     @Transactional
     public void deductProductStock(UUID id, Integer quantity) {
-        if (quantity == null || quantity <= 0) {
-            throw new InvalidStockQuantityException("Jumlah pengurangan stok harus lebih dari 0");
-        }
+        validateQuantity(quantity, "pengurangan");
 
         Product product = findProductByIdForUpdate(id);
         if (product.getStock() < quantity) {
@@ -107,9 +105,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void increaseProductStock(UUID id, Integer quantity) {
-        if (quantity == null || quantity <= 0) {
-            throw new InvalidStockQuantityException("Jumlah penambahan stok harus lebih dari 0");
-        }
+        validateQuantity(quantity, "penambahan");
 
         Product product = findProductByIdForUpdate(id);
         product.setStock(product.getStock() + quantity);
@@ -128,10 +124,7 @@ public class ProductServiceImpl implements ProductService {
     public Product adminUpdateProduct(UUID id, Product updatedProduct) {
         Product existingProduct = findProductByIdForUpdate(id);
 
-        existingProduct.setName(updatedProduct.getName());
-        existingProduct.setDescription(updatedProduct.getDescription());
-        existingProduct.setPrice(updatedProduct.getPrice());
-        existingProduct.setStock(updatedProduct.getStock());
+        updateBasicFields(existingProduct, updatedProduct);
         existingProduct.setOriginCountry(updatedProduct.getOriginCountry());
         existingProduct.setArrivalDate(updatedProduct.getArrivalDate());
 
@@ -157,14 +150,27 @@ public class ProductServiceImpl implements ProductService {
         productRepository.save(product);
     }
 
-    private void validateOwnership(String productOwner, String requesterUsername) {
-        if (!productOwner.equals(requesterUsername)) {
-            throw new ProductOwnershipException("Anda tidak berhak memodifikasi produk ini");
+    private void updateBasicFields(Product existingProduct, Product updatedData) {
+        existingProduct.setName(updatedData.getName());
+        existingProduct.setDescription(updatedData.getDescription());
+        existingProduct.setPrice(updatedData.getPrice());
+        existingProduct.setStock(updatedData.getStock());
+    }
+
+    private void validateQuantity(Integer quantity, String actionType) {
+        if (quantity == null || quantity <= 0) {
+            throw new InvalidStockQuantityException("Jumlah " + actionType + " stok harus lebih dari 0");
         }
     }
 
     private Product findProductByIdForUpdate(UUID id){
         return productRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ProductNotFoundException("Produk tidak ditemukan"));
+    }
+
+    private void validateOwnership(UUID productOwnerId, UUID requesterId) {
+        if (!productOwnerId.equals(requesterId)) {
+            throw new ProductOwnershipException("Anda tidak berhak memodifikasi produk ini");
+        }
     }
 }

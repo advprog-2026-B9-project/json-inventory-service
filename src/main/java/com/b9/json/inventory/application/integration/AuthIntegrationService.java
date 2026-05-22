@@ -2,23 +2,26 @@ package com.b9.json.inventory.application.integration;
 
 import com.b9.json.inventory.application.dto.UserDto;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.HttpClientErrorException;
+
+import java.util.UUID;
 
 @Service
 public class AuthIntegrationService {
 
     private final RestClient restClient;
 
-    public AuthIntegrationService(RestClient.Builder restClientBuilder) {
-        this.restClient = restClientBuilder.baseUrl("${AUTH_SERVICE_URL}").build();
+    public AuthIntegrationService(RestClient.Builder restClientBuilder, @Value("${AUTH_SERVICE_URL:http://localhost:8083}") String baseUrl) {
+        this.restClient = restClientBuilder.baseUrl(baseUrl).build();
     }
 
-    public UserDto getUserByUsername(String username) {
+    public UserDto getUserById(UUID id) {
         try {
             return restClient.get()
-                    .uri("/auth/internal/user?username={username}", username)
+                    .uri("api/v1/auth/internal/user?id={id}", id)
                     .retrieve()
                     .body(UserDto.class);
         } catch (HttpClientErrorException.NotFound e) {
