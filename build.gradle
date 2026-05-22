@@ -44,17 +44,16 @@ dependencies {
     implementation 'me.paulschwarz:spring-dotenv:4.0.0'
 }
 
-//sonar {
-//    properties {
-//        property "sonar.projectKey", "advprog-2026-B9-project_json-platform"
-//        property "sonar.organization", "advprog-2026-b9-project"
-//    }
-//}
+plugins {
+    id "org.sonarqube" version "7.3.0.8198"
+}
 
-//checkstyle {
-//    toolVersion = '10.15.0'
-//    configFile = file("${rootDir}/config/checkstyle/checkstyle.xml")
-//}
+sonar {
+    properties {
+        property "sonar.projectKey", "advprog-2026-B9-project_json-inventory-service"
+        property "sonar.organization", "advprog-2026-b9-project"
+    }
+}
 
 jacoco {
     toolVersion = "0.8.11"
