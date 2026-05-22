@@ -21,15 +21,15 @@ public class JastiperProductController {
     @PostMapping
     public ResponseEntity<Product> createProduct(
             @Validated @RequestBody Product product,
-            @RequestHeader("X-User-Name") String ownerUsername) {
-        Product createdProduct = jastiperService.createProduct(product, ownerUsername);
+            @RequestHeader("X-User-Id") UUID ownerId) {
+        Product createdProduct = jastiperService.createProduct(product, ownerId);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
     @GetMapping("/me")
     public ResponseEntity<List<Product>> getMyProducts(
-            @RequestHeader("X-User-Name") String ownerUsername) {
-        List<Product> products = jastiperService.getMyProducts(ownerUsername);
+            @RequestHeader("X-User-Id") UUID ownerId) {
+        List<Product> products = jastiperService.getMyProducts(ownerId);
         return new ResponseEntity<>(products, HttpStatus.OK);
     }
 
@@ -37,16 +37,16 @@ public class JastiperProductController {
     public ResponseEntity<Product> updateProduct(
             @PathVariable UUID id,
             @Validated @RequestBody Product product,
-            @RequestHeader("X-User-Name") String ownerUsername) {
-        Product updatedProduct = jastiperService.updateProduct(id, product, ownerUsername);
+            @RequestHeader("X-User-Id") UUID ownerId) {
+        Product updatedProduct = jastiperService.updateProduct(id, product, ownerId);
         return new ResponseEntity<>(updatedProduct, HttpStatus.OK);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteProduct(
             @PathVariable UUID id,
-            @RequestHeader("X-User-Name") String ownerUsername) {
-        jastiperService.deleteProduct(id, ownerUsername);
+            @RequestHeader("X-User-Id") UUID ownerId) {
+        jastiperService.deleteProduct(id, ownerId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 }

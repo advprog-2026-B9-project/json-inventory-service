@@ -9,6 +9,6 @@ import java.util.UUID;
 public interface ProductCatalogService {
     List<Product> getAllProducts();
     Product getProductById(UUID id);
-    List<ProductDetailResponse> getAllProductsWithDetails(String name, String jastiper);
+    List<ProductDetailResponse> getAllProductsWithDetails(String name, UUID jastiperId);
     void addProductRating(UUID id, Integer ratingScore);
 }

@@ -37,6 +37,9 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
+    @Column(name = "owner_id")
+    private UUID ownerId;
+
     @NotBlank(message = "Nama produk tidak boleh kosong")
     @Size(max = 255, message = "Nama produk terlalu panjang")
     private String name;
@@ -58,9 +61,6 @@ public class Product {
 
     @NotNull(message = "Tanggal pembelian atau kembali harus diisi")
     private LocalDate arrivalDate;
-
-    @NotBlank(message = "Owner username tidak boleh kosong")
-    private String ownerUsername;
 
     @NotNull(message = "Total ulasan tidak boleh null")
     @Min(value = 0, message = "Total ulasan tidak boleh negatif")

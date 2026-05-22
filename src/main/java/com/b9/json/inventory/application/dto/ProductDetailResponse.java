@@ -22,7 +22,7 @@ public class ProductDetailResponse {
     private Double averageRating;
     private Integer totalReviews;
 
-    private String jastiperUsername;
+    private UUID jastiperId;
     private String jastiperFullName;
     private String jastiperPhoneNumber;
 
@@ -37,7 +37,7 @@ public class ProductDetailResponse {
         this.averageRating = product.getAverageRating();
         this.totalReviews = product.getTotalReviews();
 
-        this.jastiperUsername = product.getOwnerUsername();
+        this.jastiperId = product.getOwnerId();
         this.jastiperFullName = fullName;
         this.jastiperPhoneNumber = phoneNumber;
     }

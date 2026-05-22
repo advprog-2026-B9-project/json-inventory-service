@@ -33,58 +33,56 @@ public class ProductServiceImpl implements
     private final AuthIntegrationService authIntegrationService;
 
     @Override
-    public Product createProduct(Product product, String ownerUsername) {
-        product.setOwnerUsername(ownerUsername);
-        return productRepository.save(product);
-    }
-
-    @Override
-    @Transactional
-    public Product updateProduct(UUID id, Product updatedData, String ownerUsername) {
-        Product existingProduct = findProductByIdForUpdate(id);
-        validateOwnership(existingProduct.getOwnerUsername(), ownerUsername);
-
-        updateBasicFields(existingProduct, updatedData);
-
-        return productRepository.save(existingProduct);
-    }
-
-    @Override
     public List<Product> getAllProducts() {
         return productRepository.findAll();
     }
 
-    @Override
-    public List<Product> getMyProducts(String ownerUsername) {
-        return productRepository.findByOwner(ownerUsername);
-    }
-
-    @Override
-    @Transactional
-    public void deleteProduct(UUID id, String ownerUsername) {
-        Product product = findProductByIdForUpdate(id);
-        validateOwnership(product.getOwnerUsername(), ownerUsername);
-
-        productRepository.deleteById(id);
-    }
-
-    @Override
-    public List<ProductDetailResponse> getAllProductsWithDetails(String name, String jastiper) {
-        List<Product> products = productRepository.searchProducts(name, jastiper);
-
-        return products.stream().map(product -> {
-            UserDto user = authIntegrationService.getUserByUsername(product.getOwnerUsername());
-
-            String fullName = (user != null) ? user.fullName() : "Anonim";
-            String phone = (user != null) ? user.phoneNumber() : "-";
-            return new ProductDetailResponse(product, fullName, phone);
-        }).toList();
-    }
 
     @Override
     public Product getProductById(UUID id) {
         return productRepository.findById(id)
                 .orElseThrow(() -> new ProductNotFoundException("Produk tidak ditemukan"));
+    }
+
+    @Override
+    public Product createProduct(Product product, UUID ownerId) {
+        product.setOwnerId(ownerId);
+        return productRepository.save(product);
+    }
+
+    @Override
+    @Transactional
+    public Product updateProduct(UUID id, Product updatedData, UUID ownerId) {
+        Product existingProduct = findProductByIdForUpdate(id);
+        validateOwnership(existingProduct.getOwnerId(), ownerId);
+        updateBasicFields(existingProduct, updatedData);
+        return productRepository.save(existingProduct);
+    }
+
+    @Override
+    public List<Product> getMyProducts(UUID ownerId) {
+        return productRepository.findByOwnerId(ownerId);
+    }
+
+    @Override
+    @Transactional
+    public void deleteProduct(UUID id, UUID ownerId) {
+        Product product = findProductByIdForUpdate(id);
+        validateOwnership(product.getOwnerId(), ownerId);
+        productRepository.deleteById(id);
+    }
+
+    @Override
+    public List<ProductDetailResponse> getAllProductsWithDetails(String name, UUID jastiperId) {
+        List<Product> products = productRepository.searchProducts(name, jastiperId);
+
+        return products.stream().map(product -> {
+            UserDto user = authIntegrationService.getUserById(product.getOwnerId());
+
+            String fullName = (user != null) ? user.fullName() : "Anonim";
+            String phone = (user != null) ? user.phoneNumber() : "-";
+            return new ProductDetailResponse(product, fullName, phone);
+        }).toList();
     }
 
     @Override
@@ -165,14 +163,14 @@ public class ProductServiceImpl implements
         }
     }
 
-    private void validateOwnership(String productOwner, String requesterUsername) {
-        if (!productOwner.equals(requesterUsername)) {
-            throw new ProductOwnershipException("Anda tidak berhak memodifikasi produk ini");
-        }
-    }
-
     private Product findProductByIdForUpdate(UUID id){
         return productRepository.findByIdForUpdate(id)
                 .orElseThrow(() -> new ProductNotFoundException("Produk tidak ditemukan"));
+    }
+
+    private void validateOwnership(UUID productOwnerId, UUID requesterId) {
+        if (!productOwnerId.equals(requesterId)) {
+            throw new ProductOwnershipException("Anda tidak berhak memodifikasi produk ini");
+        }
     }
 }
