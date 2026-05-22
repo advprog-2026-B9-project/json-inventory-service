@@ -21,7 +21,7 @@ public class AuthIntegrationService {
     public UserDto getUserById(UUID id) {
         try {
             return restClient.get()
-                    .uri("/auth/internal/user?id={id}", id)
+                    .uri("api/v1/auth/internal/user?id={id}", id)
                     .retrieve()
                     .body(UserDto.class);
         } catch (HttpClientErrorException.NotFound e) {
