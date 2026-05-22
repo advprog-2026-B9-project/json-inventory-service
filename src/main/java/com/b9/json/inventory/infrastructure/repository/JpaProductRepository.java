@@ -27,11 +27,6 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public List<Product> findByOwner(String ownerUsername) {
-        return springDataRepository.findByOwnerUsername(ownerUsername);
-    }
-
-    @Override
     public List<Product> findAll() {
         return springDataRepository.findAll();
     }
@@ -42,12 +37,17 @@ public class JpaProductRepository implements ProductRepository {
     }
 
     @Override
-    public List<Product> searchProducts(String name, String jastiper) {
-        return springDataRepository.searchProducts(name, jastiper);
+    public Optional<Product> findByIdForUpdate(UUID id) {
+        return springDataRepository.findByIdForUpdate(id);
     }
 
     @Override
-    public Optional<Product> findByIdForUpdate(UUID id) {
-        return springDataRepository.findByIdForUpdate(id);
+    public List<Product> findByOwnerId(UUID ownerId) {
+        return springDataRepository.findByOwnerId(ownerId);
+    }
+
+    @Override
+    public List<Product> searchProducts(String name, UUID jastiperId) {
+        return springDataRepository.searchProducts(name, jastiperId);
     }
 }

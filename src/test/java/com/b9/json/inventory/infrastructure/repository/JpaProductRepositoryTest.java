@@ -35,12 +35,12 @@ class JpaProductRepositoryTest {
 
     private Product sampleProduct;
     private UUID productId;
-    private String ownerUsername;
+    private UUID ownerId;
 
     @BeforeEach
     void setUp() {
         productId = UUID.randomUUID();
-        ownerUsername = "user1";
+        ownerId = UUID.randomUUID();
 
         sampleProduct = Product.builder()
                 .id(productId)
@@ -50,7 +50,7 @@ class JpaProductRepositoryTest {
                 .stock(3)
                 .originCountry("Sawit")
                 .arrivalDate(LocalDate.now().plusDays(7))
-                .ownerUsername(ownerUsername)
+                .ownerId(ownerId)
                 .build();
     }
 
@@ -77,15 +77,15 @@ class JpaProductRepositoryTest {
     }
 
     @Test
-    void testFindByOwner() {
+    void testFindByOwnerId() {
         List<Product> productList = List.of(sampleProduct);
-        when(springDataRepository.findByOwnerUsername(ownerUsername)).thenReturn(productList);
+        when(springDataRepository.findByOwnerId(ownerId)).thenReturn(productList);
 
-        List<Product> result = jpaProductRepository.findByOwner(ownerUsername);
+        List<Product> result = jpaProductRepository.findByOwnerId(ownerId);
 
         assertEquals(1, result.size());
-        assertEquals(ownerUsername, result.getFirst().getOwnerUsername());
-        verify(springDataRepository, times(1)).findByOwnerUsername(ownerUsername);
+        assertEquals(ownerId, result.getFirst().getOwnerId());
+        verify(springDataRepository, times(1)).findByOwnerId(ownerId);
     }
 
     @Test
@@ -111,12 +111,12 @@ class JpaProductRepositoryTest {
     @Test
     void testSearchProducts() {
         List<Product> productList = List.of(sampleProduct);
-        when(springDataRepository.searchProducts("produk", "user1")).thenReturn(productList);
+        when(springDataRepository.searchProducts("produk", ownerId)).thenReturn(productList);
 
-        List<Product> result = jpaProductRepository.searchProducts("produk", "user1");
+        List<Product> result = jpaProductRepository.searchProducts("produk", ownerId);
 
         assertEquals(1, result.size());
-        verify(springDataRepository, times(1)).searchProducts("produk", "user1");
+        verify(springDataRepository, times(1)).searchProducts("produk", ownerId);
     }
 
     @Test

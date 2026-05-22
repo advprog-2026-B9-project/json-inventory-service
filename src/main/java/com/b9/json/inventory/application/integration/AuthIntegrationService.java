@@ -7,6 +7,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.client.HttpClientErrorException;
 
+import java.util.UUID;
+
 @Service
 public class AuthIntegrationService {
 
@@ -16,10 +18,10 @@ public class AuthIntegrationService {
         this.restClient = restClientBuilder.baseUrl(baseUrl).build();
     }
 
-    public UserDto getUserByUsername(String username) {
+    public UserDto getUserById(UUID id) {
         try {
             return restClient.get()
-                    .uri("/auth/internal/user?username={username}", username)
+                    .uri("/auth/internal/user?id={id}", id)
                     .retrieve()
                     .body(UserDto.class);
         } catch (HttpClientErrorException.NotFound e) {

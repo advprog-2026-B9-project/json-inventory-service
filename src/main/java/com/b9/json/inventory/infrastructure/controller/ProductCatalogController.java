@@ -21,8 +21,8 @@ public class ProductCatalogController {
     @GetMapping
     public ResponseEntity<List<ProductDetailResponse>> getAllProducts(
             @RequestParam(required = false) String name,
-            @RequestParam(required = false) String jastiper) {
-        return ResponseEntity.ok(catalogService.getAllProductsWithDetails(name, jastiper));
+            @RequestParam(required = false) UUID jastiperId) {
+        return ResponseEntity.ok(catalogService.getAllProductsWithDetails(name, jastiperId));
     }
 
     @GetMapping("/{id}")

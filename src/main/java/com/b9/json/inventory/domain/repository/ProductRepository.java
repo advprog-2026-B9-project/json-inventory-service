@@ -9,8 +9,8 @@ public interface ProductRepository {
     Product save(Product product);
     Optional<Product> findById(UUID id);
     List<Product> findAll();
-    List<Product> findByOwner(String ownerUsername);
+    List<Product> findByOwnerId(UUID ownerId);
+    List<Product> searchProducts(String name, UUID jastiperId);
     void deleteById(UUID id);
-    List<Product> searchProducts(String name, String jastiper);
     Optional<Product> findByIdForUpdate(UUID id);
 }

@@ -6,8 +6,8 @@ import java.util.List;
 import java.util.UUID;
 
 public interface JastiperProductService {
-    Product createProduct(Product product, String ownerUsername);
-    Product updateProduct(UUID id, Product product, String ownerUsername);
-    List<Product> getMyProducts(String ownerUsername);
-    void deleteProduct(UUID id, String ownerUsername);
+    Product createProduct(Product product, UUID ownerId);
+    Product updateProduct(UUID id, Product product, UUID ownerId);
+    List<Product> getMyProducts(UUID ownerId);
+    void deleteProduct(UUID id, UUID ownerId);
 }

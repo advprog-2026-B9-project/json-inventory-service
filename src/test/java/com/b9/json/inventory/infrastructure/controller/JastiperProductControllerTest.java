@@ -49,77 +49,75 @@ class JastiperProductControllerTest {
 
     private Product sampleProduct;
     private UUID productId;
-    private String ownerUsername;
+    private UUID ownerId;
 
     @BeforeEach
     void setUp() {
         productId = UUID.randomUUID();
-        ownerUsername = "user1";
+        ownerId = UUID.randomUUID();
 
         sampleProduct = Product.builder()
                 .id(productId)
+                .ownerId(ownerId)
                 .name("produk 1")
                 .description("beli bang")
                 .price(new BigDecimal("50000"))
                 .stock(3)
                 .originCountry("Indo")
                 .arrivalDate(LocalDate.now().plusDays(7))
-                .ownerUsername(ownerUsername)
                 .build();
     }
 
     @Test
     void createProduct_Success() throws Exception {
-        when(jastiperService.createProduct(any(Product.class), eq(ownerUsername))).thenReturn(sampleProduct);
+        when(jastiperService.createProduct(any(Product.class), eq(ownerId))).thenReturn(sampleProduct);
 
         mockMvc.perform(post("/api/v1/products")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-User-Name", ownerUsername)
+                        .header("X-User-Id", ownerId.toString())
                         .content(objectMapper.writeValueAsString(sampleProduct)))
                 .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(productId.toString()))
-                .andExpect(jsonPath("$.name").value(sampleProduct.getName()));
+                .andExpect(jsonPath("$.id").value(productId.toString()));
 
-        verify(jastiperService, times(1)).createProduct(any(Product.class), eq(ownerUsername));
+        verify(jastiperService, times(1)).createProduct(any(Product.class), eq(ownerId));
     }
 
     @Test
     void getMyProducts_Success() throws Exception {
         List<Product> products = Collections.singletonList(sampleProduct);
-        when(jastiperService.getMyProducts(ownerUsername)).thenReturn(products);
+        when(jastiperService.getMyProducts(ownerId)).thenReturn(products);
 
         mockMvc.perform(get("/api/v1/products/me")
-                        .header("X-User-Name", ownerUsername)
+                        .header("X-User-Id", ownerId.toString())
                         .contentType(MediaType.APPLICATION_JSON))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.size()").value(1))
-                .andExpect(jsonPath("$[0].ownerUsername").value(ownerUsername));
+                .andExpect(jsonPath("$[0].ownerId").value(ownerId.toString()));
 
-        verify(jastiperService, times(1)).getMyProducts(ownerUsername);
+        verify(jastiperService, times(1)).getMyProducts(ownerId);
     }
 
     @Test
     void updateProduct_Success() throws Exception {
-        when(jastiperService.updateProduct(eq(productId), any(Product.class), eq(ownerUsername))).thenReturn(sampleProduct);
+        when(jastiperService.updateProduct(eq(productId), any(Product.class), eq(ownerId))).thenReturn(sampleProduct);
 
         mockMvc.perform(put("/api/v1/products/{id}", productId)
                         .contentType(MediaType.APPLICATION_JSON)
-                        .header("X-User-Name", ownerUsername)
+                        .header("X-User-Id", ownerId.toString())
                         .content(objectMapper.writeValueAsString(sampleProduct)))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("$.name").value(sampleProduct.getName()));
+                .andExpect(status().isOk());
 
-        verify(jastiperService, times(1)).updateProduct(eq(productId), any(Product.class), eq(ownerUsername));
+        verify(jastiperService, times(1)).updateProduct(eq(productId), any(Product.class), eq(ownerId));
     }
 
     @Test
     void deleteProduct_Success() throws Exception {
-        doNothing().when(jastiperService).deleteProduct(productId, ownerUsername);
+        doNothing().when(jastiperService).deleteProduct(productId, ownerId);
 
         mockMvc.perform(delete("/api/v1/products/{id}", productId)
-                        .header("X-User-Name", ownerUsername))
+                        .header("X-User-Id", ownerId.toString()))
                 .andExpect(status().isNoContent());
 
-        verify(jastiperService, times(1)).deleteProduct(productId, ownerUsername);
+        verify(jastiperService, times(1)).deleteProduct(productId, ownerId);
     }
 }

@@ -13,12 +13,12 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface SpringDataProductRepository extends JpaRepository<Product, UUID> {
-    List<Product> findByOwnerUsername(String ownerUsername);
+    List<Product> findByOwnerId(UUID ownerId);
 
     @Query("SELECT p FROM Product p WHERE " +
             "(:name IS NULL OR LOWER(p.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:jastiper IS NULL OR p.ownerUsername = :jastiper)")
-    List<Product> searchProducts(@Param("name") String name, @Param("jastiper") String jastiper);
+            "(:jastiperId IS NULL OR p.ownerId = :jastiperId)")
+    List<Product> searchProducts(@Param("name") String name, @Param("jastiperId") UUID jastiperId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query("SELECT p FROM Product p WHERE p.id = :id")

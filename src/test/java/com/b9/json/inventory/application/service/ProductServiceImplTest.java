@@ -51,19 +51,19 @@ class ProductServiceImplTest {
 
     private Product sampleProduct;
     private UUID productId;
-    private String owner;
+    private UUID ownerId;
 
     @BeforeEach
     void setUp() {
         productId = UUID.randomUUID();
-        owner = "user1";
+        ownerId = UUID.randomUUID();
         sampleProduct = Product.builder()
                 .id(productId)
                 .name("produknya user 1")
                 .description("beli aja")
                 .price(new BigDecimal("5"))
                 .stock(5)
-                .ownerUsername(owner)
+                .ownerId(ownerId)
                 .build();
     }
 
@@ -71,10 +71,10 @@ class ProductServiceImplTest {
     void testCreateProduct_Success() {
         when(productRepository.save(any(Product.class))).thenReturn(sampleProduct);
 
-        Product created = productService.createProduct(sampleProduct, owner);
+        Product created = productService.createProduct(sampleProduct, ownerId);
 
         assertNotNull(created);
-        assertEquals(owner, created.getOwnerUsername());
+        assertEquals(ownerId, created.getOwnerId());
         verify(productRepository, times(1)).save(any(Product.class));
     }
 
@@ -89,7 +89,7 @@ class ProductServiceImplTest {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(sampleProduct));
         when(productRepository.save(any(Product.class))).thenReturn(sampleProduct);
 
-        Product result = productService.updateProduct(productId, updatedInfo, owner);
+        Product result = productService.updateProduct(productId, updatedInfo, ownerId);
 
         assertEquals("user2", result.getName());
         assertEquals(new BigDecimal("50"), result.getPrice());
@@ -100,7 +100,7 @@ class ProductServiceImplTest {
     void testUpdateProduct_Failure_NotOwner() {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(sampleProduct));
 
-        assertThrows(ProductOwnershipException.class, () -> productService.updateProduct(productId, sampleProduct, "user2"));
+        assertThrows(ProductOwnershipException.class, () -> productService.updateProduct(productId, sampleProduct, UUID.randomUUID()));
 
         verify(productRepository, never()).save(any(Product.class));
     }
@@ -109,7 +109,7 @@ class ProductServiceImplTest {
     void testUpdateProduct_Failure_NotFound() {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.empty());
 
-        assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(productId, sampleProduct, owner));
+        assertThrows(ProductNotFoundException.class, () -> productService.updateProduct(productId, sampleProduct, ownerId));
 
         verify(productRepository, never()).save(any(Product.class));
     }
@@ -119,7 +119,7 @@ class ProductServiceImplTest {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(sampleProduct));
         doNothing().when(productRepository).deleteById(productId);
 
-        assertDoesNotThrow(() -> productService.deleteProduct(productId, owner));
+        assertDoesNotThrow(() -> productService.deleteProduct(productId, ownerId));
 
         verify(productRepository, times(1)).deleteById(productId);
     }
@@ -128,7 +128,7 @@ class ProductServiceImplTest {
     void testDeleteProduct_Failure_NotFound() {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.empty());
 
-        Exception exception = assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(productId, owner));
+        Exception exception = assertThrows(ProductNotFoundException.class, () -> productService.deleteProduct(productId, ownerId));
 
         assertTrue(exception.getMessage().contains("tidak ditemukan"));
         verify(productRepository, never()).deleteById(any());
@@ -138,7 +138,7 @@ class ProductServiceImplTest {
     void testDeleteProduct_Failure_NotOwner() {
         when(productRepository.findByIdForUpdate(productId)).thenReturn(Optional.of(sampleProduct));
 
-        assertThrows(ProductOwnershipException.class, () -> productService.deleteProduct(productId, "user2"));
+        assertThrows(ProductOwnershipException.class, () -> productService.deleteProduct(productId, UUID.randomUUID()));
 
         verify(productRepository, never()).deleteById(productId);
     }
@@ -154,42 +154,42 @@ class ProductServiceImplTest {
 
     @Test
     void testGetMyProducts_Success() {
-        when(productRepository.findByOwner(owner)).thenReturn(List.of(sampleProduct));
+        when(productRepository.findByOwnerId(ownerId)).thenReturn(List.of(sampleProduct));
 
-        List<Product> productList = productService.getMyProducts(owner);
+        List<Product> productList = productService.getMyProducts(ownerId);
         assertEquals(sampleProduct, productList.getFirst());
-        verify(productRepository, times(1)).findByOwner(owner);
+        verify(productRepository, times(1)).findByOwnerId(ownerId);
     }
 
     @Test
     void testGetAllProductsWithDetails_Success() {
-        UserDto mockUser = new UserDto(owner, "User 1", "08123456789");
+        UserDto mockUser = new UserDto(ownerId, "user1", "User 1", "08123456789");
 
-        when(productRepository.searchProducts("produknya", owner)).thenReturn(List.of(sampleProduct));
-        when(authIntegrationService.getUserByUsername(owner)).thenReturn(mockUser);
+        when(productRepository.searchProducts("produknya", ownerId)).thenReturn(List.of(sampleProduct));
+        when(authIntegrationService.getUserById(ownerId)).thenReturn(mockUser);
 
-        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", owner);
+        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", ownerId);
 
         assertEquals(1, result.size());
         assertEquals("User 1", result.getFirst().getJastiperFullName());
 
-        verify(productRepository, times(1)).searchProducts("produknya", owner);
-        verify(authIntegrationService, times(1)).getUserByUsername(owner);
+        verify(productRepository, times(1)).searchProducts("produknya", ownerId);
+        verify(authIntegrationService, times(1)).getUserById(ownerId);
     }
 
     @Test
     void testGetAllProductsWithDetails_UserNotFound_Success() {
-        when(productRepository.searchProducts("produknya", owner)).thenReturn(List.of(sampleProduct));
-        when(authIntegrationService.getUserByUsername(owner)).thenReturn(null);
+        when(productRepository.searchProducts("produknya", ownerId)).thenReturn(List.of(sampleProduct));
+        when(authIntegrationService.getUserById(ownerId)).thenReturn(null);
 
-        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", owner);
+        List<ProductDetailResponse> result = productService.getAllProductsWithDetails("produknya", ownerId);
 
         assertEquals(1, result.size());
         assertEquals("Anonim", result.getFirst().getJastiperFullName());
         assertEquals("-", result.getFirst().getJastiperPhoneNumber());
 
-        verify(productRepository, times(1)).searchProducts("produknya", owner);
-        verify(authIntegrationService, times(1)).getUserByUsername(owner);
+        verify(productRepository, times(1)).searchProducts("produknya", ownerId);
+        verify(authIntegrationService, times(1)).getUserById(ownerId);
     }
 
     @Test
